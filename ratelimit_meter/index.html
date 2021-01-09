@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `ratelimit_meter` crate."><meta name="keywords" content="rust, rustlang, rust-lang, ratelimit_meter"><title>ratelimit_meter - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../ratelimit_meter/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate ratelimit_meter</p><div class="block version"><p>Version 5.0.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all ratelimit_meter's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "ratelimit_meter", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/ratelimit_meter/lib.rs.html#1-287" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">ratelimit_meter</a></span></h1><div class="docblock"><h1 id="leaky-bucket-rate-limiting-as-a-meter-in-rust" class="section-header"><a href="#leaky-bucket-rate-limiting-as-a-meter-in-rust">Leaky Bucket Rate-Limiting (as a meter) in Rust</a></h1>
+<p>This crate provides generic rate-limiting interfaces and
+implements a few rate-limiting algorithms for programs that need
+to regulate the rate of their outgoing requests.</p>
+<p>This crate currently provides in-memory implementations of a by-key
+(limits enforced per key, e.g. an IP address or a customer ID) and a
+simple (one limit per object) state tracker.</p>
+<p>The simple (one limit per object) state tracker can be used in
+<code>no_std</code> environments, such as embedded systems.</p>
+<h2 id="interface" class="section-header"><a href="#interface">Interface</a></h2>
+<p>This crate implements two &quot;serious&quot; rate-limiting/traffic-shaping
+algorithms:
+<a href="https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm">GCRA</a>
+and a <a href="https://en.wikipedia.org/wiki/Leaky_bucket#As_a_meter">Leaky
+Bucket</a>. An
+&quot;unserious&quot; implementation is provided also: The
+<a href="example_algorithms/struct.Allower.html"><code>Allower</code></a>, which returns
+&quot;Yes&quot; to all rate-limiting queries.</p>
+<p>The Generic Cell Rate Algorithm can be used by in an in-memory
+rate limiter like so:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">NonZeroU32</span>;
+<span class="kw">use</span> <span class="ident">ratelimit_meter</span>::{<span class="ident">DirectRateLimiter</span>, <span class="ident">GCRA</span>};
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lim</span> <span class="op">=</span> <span class="ident">DirectRateLimiter</span>::<span class="op">&lt;</span><span class="ident">GCRA</span><span class="op">&gt;</span>::<span class="ident">per_second</span>(<span class="macro">nonzero</span><span class="macro">!</span>(<span class="number">50u32</span>)); <span class="comment">// Allow 50 units per second</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Ok</span>(()), <span class="ident">lim</span>.<span class="ident">check</span>());</pre></div>
+<p>The rate-limiter interface is intentionally geared towards only
+providing callers with the information they need to make decisions
+about what to do with each cell. Deciders return additional
+information about why a cell should be denied alongside the
+decision. This allows callers to e.g. provide better error
+messages to users.</p>
+<p>As a consequence, the <code>ratelimit_meter</code> crate does not provide any
+facility to wait until a cell would be allowed - if you require
+this, you should use the
+<a href="struct.NonConformance.html"><code>NonConformance</code></a> returned with
+negative decisions and have the program wait using the method best
+suited for this, e.g. an event loop.</p>
+<h2 id="using-this-crate-effectively" class="section-header"><a href="#using-this-crate-effectively">Using this crate effectively</a></h2>
+<p>Many of the parameters in use by this crate are <code>NonZeroU32</code> -
+since they are not very ergonomic to construct from constants
+using stdlib means, I recommend using the
+<a href="https://crates.io/crates/nonzero_ext">nonzero_ext</a> crate, which
+comes with a macro <code>nonzero!()</code>. This macro makes it far easier to
+construct rate limiters without cluttering your code.</p>
+<h2 id="rate-limiting-algorithms" class="section-header"><a href="#rate-limiting-algorithms">Rate-limiting Algorithms</a></h2><h3 id="design-and-implementation-of-gcra" class="section-header"><a href="#design-and-implementation-of-gcra">Design and implementation of GCRA</a></h3>
+<p>The GCRA limits the rate of cells by determining when the &quot;next&quot;
+cell is expected to arrive; any cells that arrive before that time
+are classified as non-conforming; the methods for checking cells
+also return an expected arrival time for these cells, so that
+callers can choose to wait (adding jitter), or reject the cell.</p>
+<p>Since using the GCRA results in a much smoother usage pattern, it
+appears to be very useful for &quot;outgoing&quot; traffic behaviors,
+e.g. throttling API call rates, or emails sent to a person in a
+period of time.</p>
+<p>Unlike token or leaky bucket algorithms, the GCRA assumes that all
+units of work are of the same &quot;weight&quot;, and so allows some
+optimizations which result in much more concise and fast code (it
+does not even use multiplication or division in the &quot;hot&quot; path).</p>
+<p>See <a href="algorithms/gcra/struct.GCRA.html">the documentation of the GCRA type</a> for
+more details on its implementation and on trade-offs that apply to
+it.</p>
+<h3 id="design-and-implementation-of-the-leaky-bucket" class="section-header"><a href="#design-and-implementation-of-the-leaky-bucket">Design and implementation of the leaky bucket</a></h3>
+<p>In contrast to the GCRA, the leaky bucket algorithm does not place
+any constraints on the next cell's arrival time: Whenever there is
+capacity left in the bucket, it can be used. This means that the
+distribution of &quot;yes&quot; decisions from heavy usage on the leaky
+bucket rate-limiter will be clustered together. On average, the
+cell rates of both the GCRA and the leaky bucket will be the same,
+but in terms of observable behavior, the leaky bucket will appear
+to allow requests at a more predictable rate.</p>
+<p>This kind of behavior is usually what people of online APIs expect
+these days, which makes the leaky bucket a very popular technique
+for rate-limiting on these kinds of services.</p>
+<p>The leaky bucket algorithm implemented in this crate is fairly
+standard: It only updates the bucket fill gauge when a cell is
+checked, and supports checking &quot;batches&quot; of cells in a single call
+with no problems.</p>
+<h2 id="thread-safe-operation" class="section-header"><a href="#thread-safe-operation">Thread-safe operation</a></h2>
+<p>The in-memory implementations in this crate use parking_lot
+mutexes to ensure rate-limiting operations can happen safely
+across threads.</p>
+<p>Example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">NonZeroU32</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">ratelimit_meter</span>::{<span class="ident">DirectRateLimiter</span>, <span class="ident">GCRA</span>};
+
+<span class="comment">// Allow 50 units/second across all threads:</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lim</span> <span class="op">=</span> <span class="ident">DirectRateLimiter</span>::<span class="op">&lt;</span><span class="ident">GCRA</span><span class="op">&gt;</span>::<span class="ident">per_second</span>(<span class="macro">nonzero</span><span class="macro">!</span>(<span class="number">50u32</span>));
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">thread_lim</span> <span class="op">=</span> <span class="ident">lim</span>.<span class="ident">clone</span>();
+<span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Ok</span>(()), <span class="ident">thread_lim</span>.<span class="ident">check</span>());});
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Ok</span>(()), <span class="ident">lim</span>.<span class="ident">check</span>());</pre></div>
+<h2 id="usage-with-no_std" class="section-header"><a href="#usage-with-no_std">Usage with <code>no_std</code></a></h2>
+<p><code>ratelimit_meter</code> can be used in <code>no_std</code> crates, with a reduced
+feature set. These features are available:</p>
+<ul>
+<li><a href="state/direct/struct.DirectRateLimiter.html"><code>DirectRateLimiter</code></a>
+for a single rate-limiting history per limit,</li>
+<li>measurements using relative timestamps (<code>Duration</code>) by default,</li>
+<li>extensibility for integrating a custom time source.</li>
+</ul>
+<p>The following things are not available in <code>no_std</code> builds by default:</p>
+<ul>
+<li><code>check</code> and <code>check_n</code> - unless you implement a custom time
+source, you have to pass a timestamp to check the rate-limit
+against.</li>
+<li><a href="state/keyed/struct.KeyedRateLimiter.html"><code>KeyedRateLimiter</code></a> -
+the keyed state representation requires too much of <code>std</code> right
+now to be feasible to implement.</li>
+</ul>
+<p>To use the crate, turn off default features and enable the
+<code>&quot;no_std&quot;</code> feature, like so:</p>
+<pre><code class="language-toml">[dependencies.ratelimit_meter]
+version = &quot;...&quot;
+default-features = false
+features = [&quot;no_std&quot;]
+</code></pre>
+<h3 id="implementing-your-own-custom-time-source-in-no_std" class="section-header"><a href="#implementing-your-own-custom-time-source-in-no_std">Implementing your own custom time source in <code>no_std</code></a></h3>
+<p>On platforms that do have a clock or other time source, you can
+use that time source to implement a trait provided by
+<code>ratelimit_meter</code>, which will enable the <code>check</code> and <code>check_n</code>
+methods on rate limiters. Here is an example:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="comment">// MyTimeSource is what provides your timestamps. Since it probably</span>
+<span class="comment">// doesn&#39;t live in your crate, we make a newtype:</span>
+<span class="kw">use</span> <span class="ident">ratelimit_meter</span>::<span class="ident">instant</span>;
+<span class="kw">struct</span> <span class="ident">MyInstant</span>(<span class="ident">MyTimeSource</span>);
+
+<span class="kw">impl</span> <span class="ident">instant</span>::<span class="ident">Relative</span> <span class="kw">for</span> <span class="ident">MyInstant</span> {
+    <span class="kw">fn</span> <span class="ident">duration_since</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+        <span class="self">self</span>.<span class="ident">duration_since</span>(<span class="ident">other</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">instant</span>::<span class="ident">Absolute</span> <span class="kw">for</span> <span class="ident">MyInstant</span> {
+    <span class="kw">fn</span> <span class="ident">now</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">MyTimeSource</span>::<span class="ident">now</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MyInstant</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">MyInstant</span>;
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Always</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">rhs</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Sub</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MyInstant</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">MyInstant</span>;
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Always</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">rhs</span>
+    }
+}</pre></div>
+<p>Then, using that type to create a rate limiter with that time
+source is a little more verbose. It looks like this:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lim</span> <span class="op">=</span> <span class="ident">DirectRateLimiter</span>::<span class="op">&lt;</span><span class="ident">GCRA</span><span class="op">&lt;</span><span class="ident">MyInstant</span><span class="op">&gt;</span>,<span class="ident">MyInstant</span><span class="op">&gt;</span>::<span class="ident">per_second</span>(<span class="macro">nonzero</span><span class="macro">!</span>(<span class="number">50u32</span>));
+<span class="ident">lim</span>.<span class="ident">check</span>().<span class="ident">ok</span>();</pre></div>
+</div><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
+<table><tr><td><code>pub use self::algorithms::<a class="struct" href="../ratelimit_meter/algorithms/leaky_bucket/struct.LeakyBucket.html" title="struct ratelimit_meter::algorithms::leaky_bucket::LeakyBucket">LeakyBucket</a>;</code></td></tr><tr><td><code>pub use self::algorithms::<a class="trait" href="../ratelimit_meter/algorithms/trait.NonConformance.html" title="trait ratelimit_meter::algorithms::NonConformance">NonConformance</a>;</code></td></tr><tr><td><code>pub use self::algorithms::<a class="struct" href="../ratelimit_meter/algorithms/gcra/struct.GCRA.html" title="struct ratelimit_meter::algorithms::gcra::GCRA">GCRA</a>;</code></td></tr><tr><td><code>pub use self::state::<a class="struct" href="../ratelimit_meter/state/direct/struct.DirectRateLimiter.html" title="struct ratelimit_meter::state::direct::DirectRateLimiter">DirectRateLimiter</a>;</code></td></tr><tr><td><code>pub use self::state::<a class="struct" href="../ratelimit_meter/state/keyed/struct.KeyedRateLimiter.html" title="struct ratelimit_meter::state::keyed::KeyedRateLimiter">KeyedRateLimiter</a>;</code></td></tr></table><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<table><tr class="module-item"><td><a class="mod" href="algorithms/index.html" title="ratelimit_meter::algorithms mod">algorithms</a></td><td class="docblock-short"><p>Rate-limiting algorithms.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="clock/index.html" title="ratelimit_meter::clock mod">clock</a></td><td class="docblock-short"><p>Time sources for the rate limiter.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="example_algorithms/index.html" title="ratelimit_meter::example_algorithms mod">example_algorithms</a></td><td class="docblock-short"><p>No-op examples.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="state/index.html" title="ratelimit_meter::state mod">state</a></td><td class="docblock-short"><p>Data structures that keep rate-limiting state.</p>
+</td></tr></table><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<table><tr class="module-item"><td><a class="struct" href="struct.InconsistentCapacity.html" title="ratelimit_meter::InconsistentCapacity struct">InconsistentCapacity</a></td><td class="docblock-short"><p>An error that is returned when initializing a rate limiter that is
+too small to let a single cell through.</p>
+</td></tr></table><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<table><tr class="module-item"><td><a class="enum" href="enum.NegativeMultiDecision.html" title="ratelimit_meter::NegativeMultiDecision enum">NegativeMultiDecision</a></td><td class="docblock-short"><p>Gives additional information about the negative outcome of a batch
+cell decision.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "ratelimit_meter";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

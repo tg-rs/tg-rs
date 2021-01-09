@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["escape","Escapes a string so it will be interpreted as a single word by the UNIX Bourne shell."],["join","Builds a command line string from a list of arguments."],["split","Splits a string into a vector of words in the same way the UNIX Bourne shell does."]],"struct":[["MismatchedQuotes","An error when splitting a string with mismatched quotes."]]});

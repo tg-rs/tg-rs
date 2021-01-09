@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["SessionError","An error occurred in session"]],"mod":[["backend","Store backend implementations"]],"struct":[["Session","Actual session"],["SessionCollector","Garbage collector for sessions"],["SessionCollectorHandle","GC handle"],["SessionManager","A session manager"]]});

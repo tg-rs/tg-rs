@@ -1,0 +1,176 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `carapax/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../carapax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! A Telegram Bot framework</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">nightly</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>, <span class="ident">external_doc</span>))]</span>
+<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
+
+<span class="kw">mod</span> <span class="ident">core</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">core</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tgbot</span>::{
+    <span class="ident">longpoll</span>, <span class="ident">methods</span>, <span class="ident">mime</span>, <span class="ident">types</span>, <span class="ident">webhook</span>, <span class="ident">Api</span>, <span class="ident">ApiError</span>, <span class="ident">Config</span>, <span class="ident">DownloadFileError</span>, <span class="ident">ExecuteError</span>, <span class="ident">ParseProxyError</span>,
+    <span class="ident">UpdateHandler</span>,
+};
+
+<span class="doccomment">/// Mark an async function as update handler</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If called without arguments it simply will implement [Handler](trait.Handler.html) for given function.</span>
+<span class="doccomment">/// Example:</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use carapax::{types::Update, handler};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[handler]</span>
+<span class="doccomment">/// async fn handle_update(context: &amp;(), update: Update) {</span>
+<span class="doccomment">///     println!(&quot;Got update: {:?}&quot;, update);</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Use `#[handler(command=&quot;/name&quot;)]` when you need to handle a command.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Example:</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use carapax::{types::Command, handler};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[handler(command = &quot;/start&quot;)]</span>
+<span class="doccomment">/// async fn handle_start(context: &amp;(), command: Command) {</span>
+<span class="doccomment">///     println!(&quot;Got command: {:?}&quot;, command);</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// You also can set a predicate for handler using `#[handler(predicate=path::to::func)]`.</span>
+<span class="doccomment">/// `func` should return a boolean value determining whether handler should run or not.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Example:</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use carapax::{methods::SendMessage, types::Message, handler, Api, ExecuteError};</span>
+<span class="doccomment">/// use std::convert::Infallible;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// async fn is_ping(_context: &amp;Api, message: &amp;Message) -&gt; Result&lt;bool, Infallible&gt; {</span>
+<span class="doccomment">///     Ok(message.get_text().map(|text| text.data == &quot;ping&quot;).unwrap_or(false))</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Handler will not run if message text not equals &quot;ping&quot;</span>
+<span class="doccomment">/// #[handler(predicate=is_ping)]</span>
+<span class="doccomment">/// async fn pingpong_handler(context: &amp;Api, message: Message) -&gt; Result&lt;(), ExecuteError&gt; {</span>
+<span class="doccomment">///     let chat_id = message.get_chat_id();</span>
+<span class="doccomment">///     let method = SendMessage::new(chat_id, &quot;pong&quot;);</span>
+<span class="doccomment">///     context.execute(method).await?;</span>
+<span class="doccomment">///     Ok(())</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">carapax_codegen</span>::<span class="ident">handler</span>;
+
+<span class="doccomment">/// Access handler</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;access&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">nightly</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;access&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">access</span>;
+
+<span class="doccomment">/// Dialogue adapter</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dialogue&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">nightly</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dialogue&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dialogue</span>;
+
+<span class="doccomment">/// i18n utilities</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i18n&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">nightly</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;i18n&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">i18n</span>;
+
+<span class="doccomment">/// Ratelimit handler</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ratelimit&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">nightly</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ratelimit&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ratelimit</span>;
+
+<span class="doccomment">/// Session manager</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;session&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">nightly</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;session&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">session</span>;
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "carapax";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["doc_comment","This macro can be used to generate documentation upon a type/item (or just to test outer markdown file code examples)."],["doctest","This macro provides a simpler way to test an outer markdown file."]]});

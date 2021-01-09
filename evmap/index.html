@@ -1,0 +1,203 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `evmap` crate."><meta name="keywords" content="rust, rustlang, rust-lang, evmap"><title>evmap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../evmap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate evmap</p><div class="block version"><p>Version 6.0.1</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all evmap's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "evmap", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/evmap/lib.rs.html#1-433" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">evmap</a></span></h1><div class="docblock"><p>A lock-free, eventually consistent, concurrent multi-value map.</p>
+<p>This map implementation allows reads and writes to execute entirely in parallel, with no
+implicit synchronization overhead. Reads never take locks on their critical path, and neither
+do writes assuming there is a single writer (multi-writer is possible using a <code>Mutex</code>), which
+significantly improves performance under contention.</p>
+<p>The trade-off exposed by this module is one of eventual consistency: writes are not visible to
+readers except following explicit synchronization. Specifically, readers only see the
+operations that preceeded the last call to <code>WriteHandle::refresh</code> by a writer. This lets
+writers decide how stale they are willing to let reads get. They can refresh the map after
+every write to emulate a regular concurrent <code>HashMap</code>, or they can refresh only occasionally to
+reduce the synchronization overhead at the cost of stale reads.</p>
+<p>For read-heavy workloads, the scheme used by this module is particularly useful. Writers can
+afford to refresh after every write, which provides up-to-date reads, and readers remain fast
+as they do not need to ever take locks.</p>
+<p>The map is multi-value, meaning that every key maps to a <em>collection</em> of values. This
+introduces some memory cost by adding a layer of indirection through a <code>Vec</code> for each value,
+but enables more advanced use. This choice was made as it would not be possible to emulate such
+functionality on top of the semantics of this map (think about it -- what would the operational
+log contain?).</p>
+<p>To faciliate more advanced use-cases, each of the two maps also carry some customizeable
+meta-information. The writers may update this at will, and when a refresh happens, the current
+meta will also be made visible to readers. This could be useful, for example, to indicate what
+time the refresh happened.</p>
+<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<p>Single-reader, single-writer</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// new will use the default HashMap hasher, and a meta of ()</span>
+<span class="comment">// note that we get separate read and write handles</span>
+<span class="comment">// the read handle can be cloned to have more readers</span>
+<span class="kw">let</span> (<span class="ident">book_reviews_r</span>, <span class="kw-2">mut</span> <span class="ident">book_reviews_w</span>) <span class="op">=</span> <span class="ident">evmap</span>::<span class="ident">new</span>();
+
+<span class="comment">// review some books.</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Adventures of Huckleberry Finn&quot;</span>,    <span class="string">&quot;My favorite book.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Grimms&#39; Fairy Tales&quot;</span>,               <span class="string">&quot;Masterpiece.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Pride and Prejudice&quot;</span>,               <span class="string">&quot;Very enjoyable.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;The Adventures of Sherlock Holmes&quot;</span>, <span class="string">&quot;Eye lyked it alot.&quot;</span>);
+
+<span class="comment">// at this point, reads from book_reviews_r will not see any of the reviews!</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+<span class="comment">// we need to refresh first to make the writes visible</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">refresh</span>();
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">len</span>(), <span class="number">4</span>);
+<span class="comment">// reads will now return Some() because the map has been initialized</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">get_and</span>(<span class="string">&quot;Grimms&#39; Fairy Tales&quot;</span>, <span class="op">|</span><span class="ident">rs</span><span class="op">|</span> <span class="ident">rs</span>.<span class="ident">len</span>()), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+
+<span class="comment">// remember, this is a multi-value map, so we can have many reviews</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Grimms&#39; Fairy Tales&quot;</span>,               <span class="string">&quot;Eh, the title seemed weird.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Pride and Prejudice&quot;</span>,               <span class="string">&quot;Too many words.&quot;</span>);
+
+<span class="comment">// but again, new writes are not yet visible</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">get_and</span>(<span class="string">&quot;Grimms&#39; Fairy Tales&quot;</span>, <span class="op">|</span><span class="ident">rs</span><span class="op">|</span> <span class="ident">rs</span>.<span class="ident">len</span>()), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+
+<span class="comment">// we need to refresh first</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">refresh</span>();
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">get_and</span>(<span class="string">&quot;Grimms&#39; Fairy Tales&quot;</span>, <span class="op">|</span><span class="ident">rs</span><span class="op">|</span> <span class="ident">rs</span>.<span class="ident">len</span>()), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+
+<span class="comment">// oops, this review has a lot of spelling mistakes, let&#39;s delete it.</span>
+<span class="comment">// empty deletes *all* reviews (though in this case, just one)</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">empty</span>(<span class="string">&quot;The Adventures of Sherlock Holmes&quot;</span>);
+<span class="comment">// but again, it&#39;s not visible to readers until we refresh</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">get_and</span>(<span class="string">&quot;The Adventures of Sherlock Holmes&quot;</span>, <span class="op">|</span><span class="ident">rs</span><span class="op">|</span> <span class="ident">rs</span>.<span class="ident">len</span>()), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+<span class="ident">book_reviews_w</span>.<span class="ident">refresh</span>();
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">get_and</span>(<span class="string">&quot;The Adventures of Sherlock Holmes&quot;</span>, <span class="op">|</span><span class="ident">rs</span><span class="op">|</span> <span class="ident">rs</span>.<span class="ident">len</span>()), <span class="prelude-val">None</span>);
+
+<span class="comment">// look up the values associated with some keys.</span>
+<span class="kw">let</span> <span class="ident">to_find</span> <span class="op">=</span> [<span class="string">&quot;Pride and Prejudice&quot;</span>, <span class="string">&quot;Alice&#39;s Adventure in Wonderland&quot;</span>];
+<span class="kw">for</span> <span class="ident">book</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">to_find</span> {
+    <span class="kw">let</span> <span class="ident">reviewed</span> <span class="op">=</span> <span class="ident">book_reviews_r</span>.<span class="ident">get_and</span>(<span class="ident">book</span>, <span class="op">|</span><span class="ident">reviews</span><span class="op">|</span> {
+        <span class="kw">for</span> <span class="ident">review</span> <span class="kw">in</span> <span class="ident">reviews</span> {
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">book</span>, <span class="ident">review</span>);
+        }
+    });
+    <span class="kw">if</span> <span class="ident">reviewed</span>.<span class="ident">is_none</span>() {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{} is unreviewed.&quot;</span>, <span class="ident">book</span>);
+    }
+}
+
+<span class="comment">// iterate over everything.</span>
+<span class="ident">book_reviews_r</span>.<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">book</span>, <span class="ident">reviews</span><span class="op">|</span> {
+    <span class="kw">for</span> <span class="ident">review</span> <span class="kw">in</span> <span class="ident">reviews</span> {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}: \&quot;{}\&quot;&quot;</span>, <span class="ident">book</span>, <span class="ident">review</span>);
+    }
+});</pre></div>
+<p>Reads from multiple threads are possible by cloning the <code>ReadHandle</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
+<span class="kw">let</span> (<span class="ident">book_reviews_r</span>, <span class="kw-2">mut</span> <span class="ident">book_reviews_w</span>) <span class="op">=</span> <span class="ident">evmap</span>::<span class="ident">new</span>();
+
+<span class="comment">// start some readers</span>
+<span class="kw">let</span> <span class="ident">readers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">4</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">book_reviews_r</span>.<span class="ident">clone</span>();
+    <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">len</span>();
+            <span class="kw">if</span> <span class="ident">l</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="ident">thread</span>::<span class="ident">yield_now</span>();
+            } <span class="kw">else</span> {
+                <span class="comment">// the reader will either see all the reviews,</span>
+                <span class="comment">// or none of them, since refresh() is atomic.</span>
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">l</span>, <span class="number">4</span>);
+                <span class="kw">break</span>;
+            }
+        }
+    })
+}).<span class="ident">collect</span>();
+
+<span class="comment">// do some writes</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Adventures of Huckleberry Finn&quot;</span>,    <span class="string">&quot;My favorite book.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Grimms&#39; Fairy Tales&quot;</span>,               <span class="string">&quot;Masterpiece.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;Pride and Prejudice&quot;</span>,               <span class="string">&quot;Very enjoyable.&quot;</span>);
+<span class="ident">book_reviews_w</span>.<span class="ident">insert</span>(<span class="string">&quot;The Adventures of Sherlock Holmes&quot;</span>, <span class="string">&quot;Eye lyked it alot.&quot;</span>);
+<span class="comment">// expose the writes</span>
+<span class="ident">book_reviews_w</span>.<span class="ident">refresh</span>();
+
+<span class="comment">// you can read through the write handle</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_w</span>.<span class="ident">len</span>(), <span class="number">4</span>);
+
+<span class="comment">// the original read handle still works too</span>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">book_reviews_r</span>.<span class="ident">len</span>(), <span class="number">4</span>);
+
+<span class="comment">// all the threads should eventually see .len() == 4</span>
+<span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="ident">readers</span>.<span class="ident">into_iter</span>() {
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">join</span>().<span class="ident">is_ok</span>());
+}</pre></div>
+<p>If multiple writers are needed, the <code>WriteHandle</code> must be protected by a <code>Mutex</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
+<span class="kw">let</span> (<span class="ident">book_reviews_r</span>, <span class="kw-2">mut</span> <span class="ident">book_reviews_w</span>) <span class="op">=</span> <span class="ident">evmap</span>::<span class="ident">new</span>();
+
+<span class="comment">// start some writers.</span>
+<span class="comment">// since evmap does not support concurrent writes, we need</span>
+<span class="comment">// to protect the write handle by a mutex.</span>
+<span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">book_reviews_w</span>));
+<span class="kw">let</span> <span class="ident">writers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">4</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">w</span>.<span class="ident">clone</span>();
+    <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">w</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <span class="ident">w</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="bool-val">true</span>);
+        <span class="ident">w</span>.<span class="ident">refresh</span>();
+    })
+}).<span class="ident">collect</span>();
+
+<span class="comment">// eventually we should see all the writes</span>
+<span class="kw">while</span> <span class="ident">book_reviews_r</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> { <span class="ident">thread</span>::<span class="ident">yield_now</span>(); };
+
+<span class="comment">// all the threads should eventually finish writing</span>
+<span class="kw">for</span> <span class="ident">w</span> <span class="kw">in</span> <span class="ident">writers</span>.<span class="ident">into_iter</span>() {
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">w</span>.<span class="ident">join</span>().<span class="ident">is_ok</span>());
+}</pre></div>
+<h1 id="implementation" class="section-header"><a href="#implementation">Implementation</a></h1>
+<p>Under the hood, the map is implemented using two regular <code>HashMap</code>s, an operational log,
+epoch counting, and some pointer magic. There is a single pointer through which all readers
+go. It points to a <code>HashMap</code>, which the readers access in order to read data. Every time a read
+has accessed the pointer, they increment a local epoch counter, and they update it again when
+they have finished the read (see #3 for more information). When a write occurs, the writer
+updates the other <code>HashMap</code> (for which there are no readers), and also stores a copy of the
+change in a log (hence the need for <code>Clone</code> on the keys and values). When
+<code>WriteHandle::refresh</code> is called, the writer, atomically swaps the reader pointer to point to
+the other map. It then waits for the epochs of all current readers to change, and then replays
+the operational log to bring the stale map up to date.</p>
+<p>Since the implementation uses regular <code>HashMap</code>s under the hood, table resizing is fully
+supported. It does, however, also mean that the memory usage of this implementation is
+approximately twice of that of a regular <code>HashMap</code>, and more if writes rarely refresh after
+writing.</p>
+<h1 id="small-vector-optimization" class="section-header"><a href="#small-vector-optimization">Small Vector Optimization</a></h1>
+<p>By default, the value-set for each key in the map uses the <code>smallvec</code> crate to keep a
+maximum of one element stored inline with the map, as opposed to separately heap-allocated
+with a plain <code>Vec</code>. Operations such as <code>Fit</code> and <code>Replace</code> will automatically switch
+back to the inline storage if possible. This is ideal for maps that mostly use one
+element per key, as it can improvate memory locality with less indirection.</p>
+<p>If this is undesirable, simple set:</p>
+<pre><code class="language-toml">default-features = false
+</code></pre>
+<p>in the <code>evmap</code> dependency entry, and <code>Vec</code> will always be used internally.</p>
+<p>Note that this will also opt out of the <code>hashbrown</code> dependency, which is usually preferred,
+so add that back with:</p>
+<pre><code class="language-toml">features = [&quot;hashbrown&quot;]
+</code></pre>
+</div><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
+<table><tr><td><code>pub use crate::shallow_copy::<a class="trait" href="../evmap/shallow_copy/trait.ShallowCopy.html" title="trait evmap::shallow_copy::ShallowCopy">ShallowCopy</a>;</code></td></tr></table><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<table><tr class="module-item"><td><a class="mod" href="shallow_copy/index.html" title="evmap::shallow_copy mod">shallow_copy</a></td><td class="docblock-short"><p>Types that can be cheaply aliased.</p>
+</td></tr></table><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<table><tr class="module-item"><td><a class="struct" href="struct.Options.html" title="evmap::Options struct">Options</a></td><td class="docblock-short"><p>Options for how to initialize the map.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Predicate.html" title="evmap::Predicate struct">Predicate</a></td><td class="docblock-short"><p>Unary predicate used to retain elements.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.ReadHandle.html" title="evmap::ReadHandle struct">ReadHandle</a></td><td class="docblock-short"><p>A handle that may be used to read from the eventually consistent map.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.ReadHandleFactory.html" title="evmap::ReadHandleFactory struct">ReadHandleFactory</a></td><td class="docblock-short"><p>A type that is both <code>Sync</code> and <code>Send</code> and lets you produce new <a href="../evmap/struct.ReadHandle.html" title="ReadHandle"><code>ReadHandle</code></a> instances.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.WriteHandle.html" title="evmap::WriteHandle struct">WriteHandle</a></td><td class="docblock-short"><p>A handle that may be used to modify the eventually consistent map.</p>
+</td></tr></table><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<table><tr class="module-item"><td><a class="enum" href="enum.Operation.html" title="evmap::Operation enum">Operation</a></td><td class="docblock-short"><p>A pending map operation.</p>
+</td></tr></table><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<table><tr class="module-item"><td><a class="fn" href="fn.new.html" title="evmap::new fn">new</a></td><td class="docblock-short"><p>Create an empty eventually consistent map.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.with_hasher.html" title="evmap::with_hasher fn">with_hasher</a></td><td class="docblock-short"><p>Create an empty eventually consistent map with meta information and custom hasher.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.with_meta.html" title="evmap::with_meta fn">with_meta</a></td><td class="docblock-short"><p>Create an empty eventually consistent map with meta information.</p>
+</td></tr></table><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
+<table><tr class="module-item"><td><a class="type" href="type.FxHashBuilder.html" title="evmap::FxHashBuilder type">FxHashBuilder</a></td><td class="docblock-short"><p>Re-export default FxHash hash builder from <code>hashbrown</code></p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "evmap";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

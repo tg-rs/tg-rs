@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Catalog","Catalog represents a set of translation strings parsed out of one MO file."],["Locale","A locale"],["LocaleNotFound","User not found when converting an object to locale"],["TranslationKey","A key for translation"],["Translator","An i18n translator uses `gettext` crate"],["TranslatorStore","A store for translators"]]});

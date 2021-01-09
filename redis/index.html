@@ -1,0 +1,325 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `redis` crate."><meta name="keywords" content="rust, rustlang, rust-lang, redis"><title>redis - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../redis/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate redis</p><div class="block version"><p>Version 0.19.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all redis's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "redis", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/redis/lib.rs.html#1-435" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">redis</a></span></h1><div class="docblock"><p>redis-rs is a rust implementation of a Redis client library.  It exposes
+a general purpose interface to Redis and also provides specific helpers for
+commonly used functionality.</p>
+<p>The crate is called <code>redis</code> and you can depend on it via cargo:</p>
+<pre><code class="language-ini">[dependencies.redis]
+version = &quot;*&quot;
+</code></pre>
+<p>If you want to use the git version:</p>
+<pre><code class="language-ini">[dependencies.redis]
+git = &quot;https://github.com/mitsuhiko/redis-rs.git&quot;
+</code></pre>
+<h1 id="basic-operation" class="section-header"><a href="#basic-operation">Basic Operation</a></h1>
+<p>redis-rs exposes two API levels: a low- and a high-level part.
+The high-level part does not expose all the functionality of redis and
+might take some liberties in how it speaks the protocol.  The low-level
+part of the API allows you to express any request on the redis level.
+You can fluently switch between both API levels at any point.</p>
+<h2 id="connection-handling" class="section-header"><a href="#connection-handling">Connection Handling</a></h2>
+<p>For connecting to redis you can use a client object which then can produce
+actual connections.  Connections and clients as well as results of
+connections and clients are considered <code>ConnectionLike</code> objects and
+can be used anywhere a request is made.</p>
+<p>The full canonical way to get a connection is to create a client and
+to ask for a connection from it:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">redis</span>;
+
+<span class="kw">fn</span> <span class="ident">do_something</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">redis</span>::<span class="ident">RedisResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">Client</span>::<span class="ident">open</span>(<span class="string">&quot;redis://127.0.0.1/&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">con</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get_connection</span>()<span class="question-mark">?</span>;
+
+    <span class="comment">/* do something here */</span>
+
+    <span class="prelude-val">Ok</span>(())
+}</pre></div>
+<h2 id="optional-features" class="section-header"><a href="#optional-features">Optional Features</a></h2>
+<p>There are a few features defined that can enable additional functionality
+if so desired.  Some of them are turned on by default.</p>
+<ul>
+<li><code>acl</code>: enables acl support (enabled by default)</li>
+<li><code>aio</code>: enables async IO support (enabled by default)</li>
+<li><code>geospatial</code>: enables geospatial support (enabled by default)</li>
+<li><code>script</code>: enables script support (enabled by default)</li>
+<li><code>r2d2</code>: enables r2d2 connection pool support (optional)</li>
+<li><code>cluster</code>: enables redis cluster support (optional)</li>
+<li><code>tokio-comp</code>: enables support for tokio (optional)</li>
+<li><code>connection-manager</code>: enables support for automatic reconnection (optional)</li>
+</ul>
+<h2 id="connection-parameters" class="section-header"><a href="#connection-parameters">Connection Parameters</a></h2>
+<p>redis-rs knows different ways to define where a connection should
+go.  The parameter to <code>Client::open</code> needs to implement the
+<code>IntoConnectionInfo</code> trait of which there are three implementations:</p>
+<ul>
+<li>string slices in <code>redis://</code> URL format.</li>
+<li>URL objects from the redis-url crate.</li>
+<li><code>ConnectionInfo</code> objects.</li>
+</ul>
+<p>The URL format is <code>redis://[&lt;username&gt;][:&lt;passwd&gt;@]&lt;hostname&gt;[:port][/&lt;db&gt;]</code></p>
+<p>If Unix socket support is available you can use a unix URL in this format:</p>
+<p><code>redis+unix:///&lt;path&gt;[?db=&lt;db&gt;[&amp;pass=&lt;password&gt;][&amp;user=&lt;username&gt;]]</code></p>
+<p>For compatibility with some other redis libraries, the &quot;unix&quot; scheme
+is also supported:</p>
+<p><code>unix:///&lt;path&gt;[?db=&lt;db&gt;][&amp;pass=&lt;password&gt;][&amp;user=&lt;username&gt;]]</code></p>
+<h2 id="executing-low-level-commands" class="section-header"><a href="#executing-low-level-commands">Executing Low-Level Commands</a></h2>
+<p>To execute low-level commands you can use the <code>cmd</code> function which allows
+you to build redis requests.  Once you have configured a command object
+to your liking you can send a query into any <code>ConnectionLike</code> object:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">fn</span> <span class="ident">do_something</span>(<span class="ident">con</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">redis</span>::<span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">redis</span>::<span class="ident">RedisResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw">_</span> : () <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">cmd</span>(<span class="string">&quot;SET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;my_key&quot;</span>).<span class="ident">arg</span>(<span class="number">42</span>).<span class="ident">query</span>(<span class="ident">con</span>)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
+}</pre></div>
+<p>Upon querying the return value is a result object.  If you do not care
+about the actual return value (other than that it is not a failure)
+you can always type annotate it to the unit type <code>()</code>.</p>
+<p>Note that commands with a sub-command (like &quot;MEMORY USAGE&quot;, &quot;ACL WHOAMI&quot;,
+&quot;LATENCY HISTORY&quot;, etc) must specify the sub-command as a separate <code>arg</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">fn</span> <span class="ident">do_something</span>(<span class="ident">con</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">redis</span>::<span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">redis</span>::<span class="ident">RedisResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="comment">// This will result in a server error: &quot;unknown command `MEMORY USAGE`&quot;</span>
+    <span class="comment">// because &quot;USAGE&quot; is technically a sub-command of &quot;MEMORY&quot;.</span>
+    <span class="ident">redis</span>::<span class="ident">cmd</span>(<span class="string">&quot;MEMORY USAGE&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;my_key&quot;</span>).<span class="ident">query</span>(<span class="ident">con</span>)<span class="question-mark">?</span>;
+
+    <span class="comment">// However, this will work as you&#39;d expect</span>
+    <span class="ident">redis</span>::<span class="ident">cmd</span>(<span class="string">&quot;MEMORY&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;USAGE&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;my_key&quot;</span>).<span class="ident">query</span>(<span class="ident">con</span>)
+}</pre></div>
+<h2 id="executing-high-level-commands" class="section-header"><a href="#executing-high-level-commands">Executing High-Level Commands</a></h2>
+<p>The high-level interface is similar.  For it to become available you
+need to use the <code>Commands</code> trait in which case all <code>ConnectionLike</code>
+objects the library provides will also have high-level methods which
+make working with the protocol easier:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">redis</span>;
+<span class="kw">use</span> <span class="ident">redis</span>::<span class="ident">Commands</span>;
+
+<span class="kw">fn</span> <span class="ident">do_something</span>(<span class="ident">con</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">redis</span>::<span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">redis</span>::<span class="ident">RedisResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw">_</span> : () <span class="op">=</span> <span class="ident">con</span>.<span class="ident">set</span>(<span class="string">&quot;my_key&quot;</span>, <span class="number">42</span>)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
+}</pre></div>
+<p>Note that high-level commands are work in progress and many are still
+missing!</p>
+<h2 id="type-conversions" class="section-header"><a href="#type-conversions">Type Conversions</a></h2>
+<p>Because redis inherently is mostly type-less and the protocol is not
+exactly friendly to developers, this library provides flexible support
+for casting values to the intended results.  This is driven through the <code>FromRedisValue</code> and <code>ToRedisArgs</code> traits.</p>
+<p>The <code>arg</code> method of the command will accept a wide range of types through
+the <code>ToRedisArgs</code> trait and the <code>query</code> method of a command can convert the
+value to what you expect the function to return through the <code>FromRedisValue</code>
+trait.  This is quite flexible and allows vectors, tuples, hashsets, hashmaps
+as well as optional values:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="ident">count</span> : <span class="ident">i32</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="string">&quot;my_counter&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="string">&quot;my_counter&quot;</span>).<span class="ident">unwrap_or</span>(<span class="number">0i32</span>);
+<span class="kw">let</span> <span class="ident">k</span> : <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="string">&quot;missing_key&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="ident">name</span> : <span class="ident">String</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="string">&quot;my_name&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="ident">bin</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="string">&quot;my_binary&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="ident">map</span> : <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">hgetall</span>(<span class="string">&quot;my_hash&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="ident">keys</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">hkeys</span>(<span class="string">&quot;my_hash&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="ident">mems</span> : <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">smembers</span>(<span class="string">&quot;my_set&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> (<span class="ident">k1</span>, <span class="ident">k2</span>) : (<span class="ident">String</span>, <span class="ident">String</span>) <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;k1&quot;</span>, <span class="string">&quot;k2&quot;</span>])<span class="question-mark">?</span>;</pre></div>
+<h1 id="iteration-protocol" class="section-header"><a href="#iteration-protocol">Iteration Protocol</a></h1>
+<p>In addition to sending a single query, iterators are also supported.  When
+used with regular bulk responses they don't give you much over querying and
+converting into a vector (both use a vector internally) but they can also
+be used with <code>SCAN</code> like commands in which case iteration will send more
+queries until the cursor is exhausted:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> : <span class="ident">redis</span>::<span class="ident">Iter</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">cmd</span>(<span class="string">&quot;SSCAN&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;my_set&quot;</span>)
+    .<span class="ident">cursor_arg</span>(<span class="number">0</span>).<span class="ident">clone</span>().<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>)<span class="question-mark">?</span>;
+<span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="ident">iter</span> {
+    <span class="comment">// do something with the item</span>
+}</pre></div>
+<p>As you can see the cursor argument needs to be defined with <code>cursor_arg</code>
+instead of <code>arg</code> so that the library knows which argument needs updating
+as the query is run for more items.</p>
+<h1 id="pipelining" class="section-header"><a href="#pipelining">Pipelining</a></h1>
+<p>In addition to simple queries you can also send command pipelines.  This
+is provided through the <code>pipe</code> function.  It works very similar to sending
+individual commands but you can send more than one in one go.  This also
+allows you to ignore individual results so that matching on the end result
+is easier:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> (<span class="ident">k1</span>, <span class="ident">k2</span>) : (<span class="ident">i32</span>, <span class="ident">i32</span>) <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">pipe</span>()
+    .<span class="ident">cmd</span>(<span class="string">&quot;SET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_1&quot;</span>).<span class="ident">arg</span>(<span class="number">42</span>).<span class="ident">ignore</span>()
+    .<span class="ident">cmd</span>(<span class="string">&quot;SET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_2&quot;</span>).<span class="ident">arg</span>(<span class="number">43</span>).<span class="ident">ignore</span>()
+    .<span class="ident">cmd</span>(<span class="string">&quot;GET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_1&quot;</span>)
+    .<span class="ident">cmd</span>(<span class="string">&quot;GET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_2&quot;</span>).<span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>)<span class="question-mark">?</span>;</pre></div>
+<p>If you want the pipeline to be wrapped in a <code>MULTI</code>/<code>EXEC</code> block you can
+easily do that by switching the pipeline into <code>atomic</code> mode.  From the
+caller's point of view nothing changes, the pipeline itself will take
+care of the rest for you:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> (<span class="ident">k1</span>, <span class="ident">k2</span>) : (<span class="ident">i32</span>, <span class="ident">i32</span>) <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">pipe</span>()
+    .<span class="ident">atomic</span>()
+    .<span class="ident">cmd</span>(<span class="string">&quot;SET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_1&quot;</span>).<span class="ident">arg</span>(<span class="number">42</span>).<span class="ident">ignore</span>()
+    .<span class="ident">cmd</span>(<span class="string">&quot;SET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_2&quot;</span>).<span class="ident">arg</span>(<span class="number">43</span>).<span class="ident">ignore</span>()
+    .<span class="ident">cmd</span>(<span class="string">&quot;GET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_1&quot;</span>)
+    .<span class="ident">cmd</span>(<span class="string">&quot;GET&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;key_2&quot;</span>).<span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>)<span class="question-mark">?</span>;</pre></div>
+<p>You can also use high-level commands on pipelines:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> (<span class="ident">k1</span>, <span class="ident">k2</span>) : (<span class="ident">i32</span>, <span class="ident">i32</span>) <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">pipe</span>()
+    .<span class="ident">atomic</span>()
+    .<span class="ident">set</span>(<span class="string">&quot;key_1&quot;</span>, <span class="number">42</span>).<span class="ident">ignore</span>()
+    .<span class="ident">set</span>(<span class="string">&quot;key_2&quot;</span>, <span class="number">43</span>).<span class="ident">ignore</span>()
+    .<span class="ident">get</span>(<span class="string">&quot;key_1&quot;</span>)
+    .<span class="ident">get</span>(<span class="string">&quot;key_2&quot;</span>).<span class="ident">query</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>)<span class="question-mark">?</span>;</pre></div>
+<h1 id="transactions" class="section-header"><a href="#transactions">Transactions</a></h1>
+<p>Transactions are available through atomic pipelines.  In order to use
+them in a more simple way you can use the <code>transaction</code> function of a
+connection:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">redis</span>::<span class="ident">Commands</span>;
+<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="string">&quot;the_key&quot;</span>;
+<span class="kw">let</span> (<span class="ident">new_val</span>,) : (<span class="ident">isize</span>,) <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">transaction</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>, <span class="kw-2">&amp;</span>[<span class="ident">key</span>], <span class="op">|</span><span class="ident">con</span>, <span class="ident">pipe</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">old_val</span> : <span class="ident">isize</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">get</span>(<span class="ident">key</span>)<span class="question-mark">?</span>;
+    <span class="ident">pipe</span>
+        .<span class="ident">set</span>(<span class="ident">key</span>, <span class="ident">old_val</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">ignore</span>()
+        .<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">query</span>(<span class="ident">con</span>)
+})<span class="question-mark">?</span>;
+<span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;The incremented number is: {}&quot;</span>, <span class="ident">new_val</span>);</pre></div>
+<p>For more information see the <code>transaction</code> function.</p>
+<h1 id="pubsub" class="section-header"><a href="#pubsub">PubSub</a></h1>
+<p>Pubsub is currently work in progress but provided through the <code>PubSub</code>
+connection object.  Due to the fact that Rust does not have support
+for async IO in libnative yet, the API does not provide a way to
+read messages with any form of timeout yet.</p>
+<p>Example usage:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">Client</span>::<span class="ident">open</span>(<span class="string">&quot;redis://127.0.0.1/&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">con</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get_connection</span>()<span class="question-mark">?</span>;
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pubsub</span> <span class="op">=</span> <span class="ident">con</span>.<span class="ident">as_pubsub</span>();
+<span class="ident">pubsub</span>.<span class="ident">subscribe</span>(<span class="string">&quot;channel_1&quot;</span>)<span class="question-mark">?</span>;
+<span class="ident">pubsub</span>.<span class="ident">subscribe</span>(<span class="string">&quot;channel_2&quot;</span>)<span class="question-mark">?</span>;
+
+<span class="kw">loop</span> {
+    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">pubsub</span>.<span class="ident">get_message</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">payload</span> : <span class="ident">String</span> <span class="op">=</span> <span class="ident">msg</span>.<span class="ident">get_payload</span>()<span class="question-mark">?</span>;
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;channel &#39;{}&#39;: {}&quot;</span>, <span class="ident">msg</span>.<span class="ident">get_channel_name</span>(), <span class="ident">payload</span>);
+}</pre></div>
+<h1 id="scripts" class="section-header"><a href="#scripts">Scripts</a></h1>
+<p>Lua scripts are supported through the <code>Script</code> type in a convenient
+way (it does not support pipelining currently).  It will automatically
+load the script if it does not exist and invoke it.</p>
+<p>Example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="ident">script</span> <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">Script</span>::<span class="ident">new</span>(<span class="string">r&quot;
+    return tonumber(ARGV[1]) + tonumber(ARGV[2]);
+&quot;</span>);
+<span class="kw">let</span> <span class="ident">result</span> : <span class="ident">isize</span> <span class="op">=</span> <span class="ident">script</span>.<span class="ident">arg</span>(<span class="number">1</span>).<span class="ident">arg</span>(<span class="number">2</span>).<span class="ident">invoke</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>)<span class="question-mark">?</span>;
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="number">3</span>);</pre></div>
+<h1 id="async" class="section-header"><a href="#async">Async</a></h1>
+<p>In addition to the synchronous interface that's been explained above there also exists an
+asynchronous interface based on <a href="https://crates.io/crates/futures"><code>futures</code></a> and <a href="https://tokio.rs"><code>tokio</code></a>.</p>
+<p>This interface exists under the <code>aio</code> (async io) module and largely mirrors the synchronous
+with a few concessions to make it fit the constraints of <code>futures</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">redis</span>::<span class="ident">AsyncCommands</span>;
+
+<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">Client</span>::<span class="ident">open</span>(<span class="string">&quot;redis://127.0.0.1/&quot;</span>).<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">con</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">get_async_connection</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+
+<span class="ident">con</span>.<span class="ident">set</span>(<span class="string">&quot;key1&quot;</span>, <span class="string">b&quot;foo&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+
+<span class="ident">redis</span>::<span class="ident">cmd</span>(<span class="string">&quot;SET&quot;</span>).<span class="ident">arg</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;key2&quot;</span>, <span class="string">&quot;bar&quot;</span>]).<span class="ident">query_async</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+
+<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">redis</span>::<span class="ident">cmd</span>(<span class="string">&quot;MGET&quot;</span>)
+ .<span class="ident">arg</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;key1&quot;</span>, <span class="string">&quot;key2&quot;</span>])
+ .<span class="ident">query_async</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">con</span>)
+ .<span class="kw">await</span>;
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>((<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>(), <span class="string">b&quot;bar&quot;</span>.<span class="ident">to_vec</span>())));</pre></div>
+</div><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<table><tr class="module-item"><td><a class="mod" href="acl/index.html" title="redis::acl mod">acl</a></td><td class="docblock-short"><p>Defines types to use with the ACL commands.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="aio/index.html" title="redis::aio mod">aio</a></td><td class="docblock-short"><p>Adds experimental async IO support to redis.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="geo/index.html" title="redis::geo mod">geo</a></td><td class="docblock-short"><p>Defines types to use with the geospatial commands.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="streams/index.html" title="redis::streams mod">streams</a></td><td class="docblock-short"><p>Defines types to use with the streams commands.</p>
+</td></tr></table><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<table><tr class="module-item"><td><a class="struct" href="struct.AsyncIter.html" title="redis::AsyncIter struct">AsyncIter</a></td><td class="docblock-short"><p>Represents a redis iterator that can be used with async connections.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Client.html" title="redis::Client struct">Client</a></td><td class="docblock-short"><p>The client type.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Cmd.html" title="redis::Cmd struct">Cmd</a></td><td class="docblock-short"><p>Represents redis commands.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Connection.html" title="redis::Connection struct">Connection</a></td><td class="docblock-short"><p>Represents a stateful redis TCP connection.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.ConnectionInfo.html" title="redis::ConnectionInfo struct">ConnectionInfo</a></td><td class="docblock-short"><p>Holds the connection information that redis should use for connecting.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.InfoDict.html" title="redis::InfoDict struct">InfoDict</a></td><td class="docblock-short"><p>An info dictionary type.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Iter.html" title="redis::Iter struct">Iter</a></td><td class="docblock-short"><p>Represents a redis iterator.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.LposOptions.html" title="redis::LposOptions struct">LposOptions</a></td><td class="docblock-short"><p>Options for the [LPOS] command</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Msg.html" title="redis::Msg struct">Msg</a></td><td class="docblock-short"><p>Represents a pubsub message.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Parser.html" title="redis::Parser struct">Parser</a></td><td class="docblock-short"><p>The internal redis response parser.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Pipeline.html" title="redis::Pipeline struct">Pipeline</a></td><td class="docblock-short"><p>Represents a redis command pipeline.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.PubSub.html" title="redis::PubSub struct">PubSub</a></td><td class="docblock-short"><p>Represents a pubsub connection.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.RedisError.html" title="redis::RedisError struct">RedisError</a></td><td class="docblock-short"><p>Represents a redis error.  For the most part you should be using
+the Error trait to interact with this rather than the actual
+struct.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Script.html" title="redis::Script struct">Script</a></td><td class="docblock-short"><p>Represents a lua script.</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.ScriptInvocation.html" title="redis::ScriptInvocation struct">ScriptInvocation</a></td><td class="docblock-short"><p>Represents a prepared script call.</p>
+</td></tr></table><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<table><tr class="module-item"><td><a class="enum" href="enum.Arg.html" title="redis::Arg enum">Arg</a></td><td class="docblock-short"><p>An argument to a redis command</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.ConnectionAddr.html" title="redis::ConnectionAddr enum">ConnectionAddr</a></td><td class="docblock-short"><p>Defines the connection address.</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.ControlFlow.html" title="redis::ControlFlow enum">ControlFlow</a></td><td class="docblock-short"><p>Allows pubsub callbacks to stop receiving messages.</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.ErrorKind.html" title="redis::ErrorKind enum">ErrorKind</a></td><td class="docblock-short"><p>An enum of all error kinds.</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.NumericBehavior.html" title="redis::NumericBehavior enum">NumericBehavior</a></td><td class="docblock-short"><p>Helper enum that is used in some situations to describe
+the behavior of arguments in a numeric context.</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.Value.html" title="redis::Value enum">Value</a></td><td class="docblock-short"><p>Internal low-level redis value enum.</p>
+</td></tr></table><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<table><tr class="module-item"><td><a class="trait" href="trait.AsyncCommands.html" title="redis::AsyncCommands trait">AsyncCommands</a></td><td class="docblock-short"><p>Implements common redis commands over asynchronous connections. This
+allows you to send commands straight to a connection or client.</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.Commands.html" title="redis::Commands trait">Commands</a></td><td class="docblock-short"><p>Implements common redis commands for connection like objects.  This
+allows you to send commands straight to a connection or client.  It
+is also implemented for redis results of clients which makes for
+very convenient access in some basic cases.</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.ConnectionLike.html" title="redis::ConnectionLike trait">ConnectionLike</a></td><td class="docblock-short"><p>Implements the &quot;stateless&quot; part of the connection interface that is used by the
+different objects in redis-rs.  Primarily it obviously applies to <code>Connection</code>
+object but also some other objects implement the interface (for instance
+whole clients or certain redis results).</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.FromRedisValue.html" title="redis::FromRedisValue trait">FromRedisValue</a></td><td class="docblock-short"><p>This trait is used to convert a redis value into a more appropriate
+type.  While a redis <code>Value</code> can represent any response that comes
+back from the redis server, usually you want to map this into something
+that works better in rust.  For instance you might want to convert the
+return value into a <code>String</code> or an integer.</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.IntoConnectionInfo.html" title="redis::IntoConnectionInfo trait">IntoConnectionInfo</a></td><td class="docblock-short"><p>Converts an object into a connection info struct.  This allows the
+constructor of the client to accept connection information in a
+range of different formats.</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.PubSubCommands.html" title="redis::PubSubCommands trait">PubSubCommands</a></td><td class="docblock-short"><p>The PubSub trait allows subscribing to one or more channels
+and receiving a callback whenever a message arrives.</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.RedisWrite.html" title="redis::RedisWrite trait">RedisWrite</a></td><td class="docblock-short"><p>Abstraction trait for redis command abstractions.</p>
+</td></tr><tr class="module-item"><td><a class="trait" href="trait.ToRedisArgs.html" title="redis::ToRedisArgs trait">ToRedisArgs</a></td><td class="docblock-short"><p>Used to convert a value into one or multiple redis argument
+strings.  Most values will produce exactly one item but in
+some cases it might make sense to produce more than one.</p>
+</td></tr></table><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<table><tr class="module-item"><td><a class="fn" href="fn.cmd.html" title="redis::cmd fn">cmd</a></td><td class="docblock-short"><p>Shortcut function to creating a command with a single argument.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.from_redis_value.html" title="redis::from_redis_value fn">from_redis_value</a></td><td class="docblock-short"><p>A shortcut function to invoke <code>FromRedisValue::from_redis_value</code>
+to make the API slightly nicer.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.pack_command.html" title="redis::pack_command fn">pack_command</a></td><td class="docblock-short"><p>Packs a bunch of commands into a request.  This is generally a quite
+useless function as this functionality is nicely wrapped through the
+<code>Cmd</code> object, but in some cases it can be useful.  The return value
+of this can then be send to the low level <code>ConnectionLike</code> methods.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.parse_redis_url.html" title="redis::parse_redis_url fn">parse_redis_url</a></td><td class="docblock-short"><p>This function takes a redis URL string and parses it into a URL
+as used by rust-url.  This is necessary as the default parser does
+not understand how redis URLs function.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.parse_redis_value.html" title="redis::parse_redis_value fn">parse_redis_value</a></td><td class="docblock-short"><p>Parses bytes into a redis value.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.parse_redis_value_async.html" title="redis::parse_redis_value_async fn">parse_redis_value_async</a></td><td class="docblock-short"><p>Parses a redis value asynchronously.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.pipe.html" title="redis::pipe fn">pipe</a></td><td class="docblock-short"><p>Shortcut for creating a new pipeline.</p>
+</td></tr><tr class="module-item"><td><a class="fn" href="fn.transaction.html" title="redis::transaction fn">transaction</a></td><td class="docblock-short"><p>This function simplifies transaction management slightly.  What it
+does is automatically watching keys and then going into a transaction
+loop util it succeeds.  Once it goes through the results are
+returned.</p>
+</td></tr></table><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
+<table><tr class="module-item"><td><a class="type" href="type.RedisFuture.html" title="redis::RedisFuture type">RedisFuture</a></td><td class="docblock-short"><p>Library generic future type.</p>
+</td></tr><tr class="module-item"><td><a class="type" href="type.RedisResult.html" title="redis::RedisResult type">RedisResult</a></td><td class="docblock-short"><p>Library generic result type.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "redis";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

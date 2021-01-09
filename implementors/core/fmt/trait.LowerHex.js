@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["bytes"] = [{"text":"impl LowerHex for Bytes","synthetic":false,"types":[]},{"text":"impl LowerHex for BytesMut","synthetic":false,"types":[]}];
+implementors["tinyvec"] = [{"text":"impl&lt;A:&nbsp;Array&gt; LowerHex for ArrayVec&lt;A&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A::Item: LowerHex,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;'s, T&gt; LowerHex for SliceVec&lt;'s, T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: LowerHex,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;A:&nbsp;Array&gt; LowerHex for TinyVec&lt;A&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A::Item: LowerHex,&nbsp;</span>","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

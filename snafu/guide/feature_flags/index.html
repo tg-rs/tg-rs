@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `feature_flags` mod in crate `snafu`."><meta name="keywords" content="rust, rustlang, rust-lang, feature_flags"><title>snafu::guide::feature_flags - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../snafu/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><p class="location">Module feature_flags</p><div class="sidebar-elems"><p class="location"><a href="../../index.html">snafu</a>::<wbr><a href="../index.html">guide</a></p><script>window.sidebarCurrent = {name: "feature_flags", ty: "mod", relpath: "../"};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../../src/snafu/lib.rs.html#149-166" title="goto source code">[src]</a></span><span class="in-band">Module <a href="../../index.html">snafu</a>::<wbr><a href="../index.html">guide</a>::<wbr><a class="mod" href="">feature_flags</a></span></h1><div class="docblock"><h1 id="optional-extensions-to-the-crate" class="section-header"><a href="#optional-extensions-to-the-crate">Optional extensions to the crate</a></h1>
+<p>In addition to the feature flags <a href="../../../snafu/guide/compatibility/index.html">controlling compatibility</a>,
+there are Cargo <a href="https://doc.rust-lang.org/stable/cargo/reference/specifying-dependencies.html#choosing-features">feature flags</a> that extend SNAFU for various use
+cases:</p>
+<ul>
+<li><a href="#std"><code>std</code></a></li>
+<li><a href="#guide"><code>guide</code></a></li>
+<li><a href="#backtraces"><code>backtraces</code></a></li>
+<li><a href="#backtraces-impl-backtrace-crate"><code>backtraces-impl-backtrace-crate</code></a></li>
+<li><a href="#unstable-backtraces-impl-std"><code>unstable-backtraces-impl-std</code></a></li>
+<li><a href="#futures"><code>futures</code></a></li>
+<li><a href="#futures-01"><code>futures-01</code></a></li>
+</ul>
+<h2 id="std" class="section-header"><a href="#std"><code>std</code></a></h2>
+<p><strong>default</strong>: enabled</p>
+<p>When enabled, SNAFU will implement the <code>std::error::Error</code> trait. When
+disabled, SNAFU will instead implement a custom <code>Error</code> trait that is
+similar, but does not need any features from the standard library.</p>
+<p>Most usages of SNAFU will want this feature enabled.</p>
+<h2 id="guide" class="section-header"><a href="#guide"><code>guide</code></a></h2>
+<p><strong>default</strong>: enabled</p>
+<p>When enabled, the <code>guide</code> module containing the user's guide will be
+built.</p>
+<p>Most usages of SNAFU will want this feature disabled. A future release
+will disable this by default.</p>
+<h2 id="backtraces" class="section-header"><a href="#backtraces"><code>backtraces</code></a></h2>
+<p><strong>default</strong>: disabled</p>
+<p>When enabled, the <a href="../../../snafu/struct.Backtrace.html"><code>Backtrace</code></a> type in your enum variant will capture
+a backtrace when the error is generated. If you never use backtraces,
+you can omit this feature to speed up compilation a small amount.</p>
+<p>It is recommended that only applications make use of this feature.</p>
+<h2 id="backtraces-impl-backtrace-crate" class="section-header"><a href="#backtraces-impl-backtrace-crate"><code>backtraces-impl-backtrace-crate</code></a></h2>
+<p><strong>default</strong>: disabled</p>
+<p>When enabled, the SNAFU <a href="../../../snafu/struct.Backtrace.html"><code>Backtrace</code></a> type becomes an alias to the
+<code>backtrace::Backtrace</code> type. This allows interoperability with other
+crates that require this type.</p>
+<p>It is recommended that only applications make use of this
+feature. When the standard library stabilizes its own backtrace type,
+this feature will no longer be supported and will be removed.</p>
+<h2 id="unstable-backtraces-impl-std" class="section-header"><a href="#unstable-backtraces-impl-std"><code>unstable-backtraces-impl-std</code></a></h2>
+<p><strong>default</strong>: disabled</p>
+<p>When enabled, the SNAFU <a href="../../../snafu/struct.Backtrace.html"><code>Backtrace</code></a> type becomes an alias to the
+<a href="https://doc.rust-lang.org/nightly/std/backtrace/struct.Backtrace.html" title="std::backtrace::Backtrace"><code>std::backtrace::Backtrace</code></a> type and <code>std::error::Error::backtrace</code>
+is implemented.</p>
+<p>It is recommended that only applications make use of this feature.</p>
+<h2 id="futures" class="section-header"><a href="#futures"><code>futures</code></a></h2>
+<p><strong>default</strong>: disabled</p>
+<p>When enabled, you can use the <a href="crate::futures::TryFutureExt"><code>futures::TryFutureExt</code></a> and
+<a href="crate::futures::TryStreamExt"><code>futures::TryStreamExt</code></a> traits to add context methods to futures
+and streams returning <code>Result</code>s.</p>
+<h2 id="futures-01" class="section-header"><a href="#futures-01"><code>futures-01</code></a></h2>
+<p><strong>default</strong>: disabled</p>
+<p>When enabled, you can use the <a href="crate::futures01::FutureExt"><code>futures01::FutureExt</code></a> and
+<a href="crate::futures01::StreamExt"><code>futures01::StreamExt</code></a> traits to add context methods to futures
+and streams.</p>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "snafu";</script><script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>

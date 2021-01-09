@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Rule","ACL rules are used in order to activate or remove a flag, or to perform a given change to the user ACL, which under the hood are just single words."]],"struct":[["AclInfo","An info dictionary type storing Redis ACL information as multiple `Rule`. This type collects key/value data returned by the `ACL GETUSER` command."]]});

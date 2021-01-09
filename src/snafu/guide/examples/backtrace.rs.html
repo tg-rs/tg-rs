@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/snafu-0.6.10/src/guide/examples/backtrace.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrace.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../snafu/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Exposing complete backtraces to the location of the error.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Start by looking at the error type [`Error`].</span>
+
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Snafu</span>, <span class="ident">Backtrace</span>, <span class="ident">ErrorCompat</span>, <span class="ident">GenerateBacktrace</span>};
+
+<span class="doccomment">/// Backtraces aren&#39;t yet supported by the stable Rust compiler. SNAFU</span>
+<span class="doccomment">/// provides a stable-compatible way of getting backtraces as well as</span>
+<span class="doccomment">/// support for the backtrace support in the nightly compiler. **By</span>
+<span class="doccomment">/// default, backtraces are disabled**. It is</span>
+<span class="doccomment">/// expected that the final executable adds SNAFU as a dependency and</span>
+<span class="doccomment">/// chooses the appropriate [feature</span>
+<span class="doccomment">/// flag](crate::guide::feature_flags) to enable backtraces.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// When using SNAFU to define error types, it&#39;s recommended to start</span>
+<span class="doccomment">/// with a [`Backtrace`] field on every leaf error variant (those</span>
+<span class="doccomment">/// without a `source`). Backtraces are only captured on</span>
+<span class="doccomment">/// failure. Since backtraces are disabled by default, adding them in</span>
+<span class="doccomment">/// a library does not force any users to pay the price of backtraces</span>
+<span class="doccomment">/// if they are not used; they can be zero cost.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Certain errors are used for flow control. Those don&#39;t need a</span>
+<span class="doccomment">/// backtrace as they don&#39;t represent actual failures. However,</span>
+<span class="doccomment">/// sometimes an error is *mostly* used for flow control but might</span>
+<span class="doccomment">/// also indicate an error. In those cases, you can use</span>
+<span class="doccomment">/// `Option&lt;Backtrace&gt;` to avoid capturing a backtrace unless an</span>
+<span class="doccomment">/// environment variable is set by the end user to provide additional</span>
+<span class="doccomment">/// debugging.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For variants that do have a source, you need to evaluate if the</span>
+<span class="doccomment">/// source error provides a backtrace of some kind. If it is another</span>
+<span class="doccomment">/// SNAFU error, for example, you can *delegate* retrieval of the</span>
+<span class="doccomment">/// backtrace to the source error. If the source error doesn&#39;t provide</span>
+<span class="doccomment">/// its own backtrace, you should capture your own backtrace. This</span>
+<span class="doccomment">/// backtrace would not be as useful as one captured by the source</span>
+<span class="doccomment">/// error, but it&#39;s as useful as you can get.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// When you wish to display the backtrace of an error, you can use</span>
+<span class="doccomment">/// the [`ErrorCompat::backtrace`] method. It&#39;s recommended to always</span>
+<span class="doccomment">/// use this in the fully-qualified form so it will be easy to find</span>
+<span class="doccomment">/// and replace when Rust stabilizes backtraces.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # use snafu::guide::examples::backtrace::*;</span>
+<span class="doccomment">/// use snafu::ErrorCompat;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// fn inner_process() -&gt; Result&lt;(), Error&gt; {</span>
+<span class="doccomment">///     // Complicated logic</span>
+<span class="doccomment">///     # UsualCase.fail()</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// fn main() {</span>
+<span class="doccomment">///     if let Err(e) = inner_process() {</span>
+<span class="doccomment">///         eprintln!(&quot;An error occurred: {}&quot;, e);</span>
+<span class="doccomment">///         if let Some(bt) = ErrorCompat::backtrace(&amp;e) {</span>
+<span class="doccomment">///             eprintln!(&quot;{:?}&quot;, bt);</span>
+<span class="doccomment">///         }</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="comment">// This line is only needed to generate documentation; it is not</span>
+<span class="comment">// needed in most cases:</span>
+<span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">crate_root</span>(<span class="kw">crate</span>), <span class="ident">visibility</span> <span class="op">=</span> <span class="string">&quot;pub&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="doccomment">/// The most common leaf error should always include a backtrace field.    .</span>
+    <span class="ident">UsualCase</span> {
+        <span class="ident">backtrace</span>: <span class="ident">Backtrace</span>,
+    },
+
+    <span class="doccomment">/// When an error is expected to be created frequently but the</span>
+    <span class="doccomment">/// backtrace is rarely needed, you can wrap it in an</span>
+    <span class="doccomment">/// `Option`. See</span>
+    <span class="doccomment">/// [GenerateBacktrace](GenerateBacktrace#impl-GenerateBacktrace-for-Option&lt;Backtrace&gt;)</span>
+    <span class="doccomment">/// for instructions on how to access the backtrace in this</span>
+    <span class="doccomment">/// case.q.</span>
+    <span class="ident">UsedInTightLoop</span> {
+        <span class="ident">backtrace</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Backtrace</span><span class="op">&gt;</span>,
+    },
+
+    <span class="doccomment">/// This error wraps another error that already has a</span>
+    <span class="doccomment">/// backtrace. Instead of capturing our own, we forward the</span>
+    <span class="doccomment">/// request for the backtrace to the inner error. This gives a</span>
+    <span class="doccomment">/// more accurate backtrace.</span>
+    <span class="ident">SnafuErrorAsSource</span> {
+        <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">backtrace</span>)]</span>
+        <span class="ident">source</span>: <span class="ident">ConfigFileError</span>,
+    },
+
+    <span class="doccomment">/// This error wraps another error that does not expose a</span>
+    <span class="doccomment">/// backtrace. We capture our own backtrace to provide something</span>
+    <span class="doccomment">/// useful.</span>
+    <span class="ident">SourceErrorDoesNotHaveBacktrace</span> {
+        <span class="ident">source</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>,
+        <span class="ident">backtrace</span>: <span class="ident">Backtrace</span>,
+    },
+}
+
+<span class="doccomment">/// This is a placeholder example and can be ignored.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">crate_root</span>(<span class="kw">crate</span>))]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ConfigFileError</span> {
+    <span class="ident">Dummy</span> { <span class="ident">backtrace</span>: <span class="ident">Backtrace</span> },
+}
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "snafu";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

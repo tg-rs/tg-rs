@@ -1,0 +1,1 @@
+initSidebarItems({"attr":[["dialogue","Mark an async function as dialogue handler"]],"enum":[["DialogueResult","Result of dialogue handler"]],"struct":[["Dialogue","Adapts dialogue handlers for Dispatcher"]],"trait":[["DialogueHandler","Dialogue handler"],["State","Dialogue state"]]});

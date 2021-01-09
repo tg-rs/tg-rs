@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `upgrading` mod in crate `snafu`."><meta name="keywords" content="rust, rustlang, rust-lang, upgrading"><title>snafu::guide::upgrading - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../snafu/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><p class="location">Module upgrading</p><div class="sidebar-elems"><p class="location"><a href="../../index.html">snafu</a>::<wbr><a href="../index.html">guide</a></p><script>window.sidebarCurrent = {name: "upgrading", ty: "mod", relpath: "../"};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../../src/snafu/lib.rs.html#149-166" title="goto source code">[src]</a></span><span class="in-band">Module <a href="../../index.html">snafu</a>::<wbr><a href="../index.html">guide</a>::<wbr><a class="mod" href="">upgrading</a></span></h1><div class="docblock"><h1 id="upgrading-from-previous-releases" class="section-header"><a href="#upgrading-from-previous-releases">Upgrading from previous releases</a></h1>
+<ul>
+<li><a href="#version-05--06">Version 0.5 → 0.6</a></li>
+<li><a href="#version-04--05">Version 0.4 → 0.5</a></li>
+<li><a href="#version-03--04">Version 0.3 → 0.4</a></li>
+<li><a href="#version-02--03">Version 0.2 → 0.3</a></li>
+<li><a href="#version-01--02">Version 0.1 → 0.2</a></li>
+</ul>
+<h2 id="version-05--06" class="section-header"><a href="#version-05--06">Version 0.5 → 0.6</a></h2><h3 id="minimum-supported-version-of-rust-is-now-131" class="section-header"><a href="#minimum-supported-version-of-rust-is-now-131">Minimum supported version of Rust is now 1.31</a></h3>
+<p>If you are writing a library, you will need to increase your minimum
+supported version of Rust to 1.31 or better. If you are writing an
+application, you should be able to upgrade your installed compiler by
+the same mechanism that you installed it.</p>
+<h3 id="backtraces" class="section-header"><a href="#backtraces">Backtraces</a></h3>
+<p>The <code>Backtrace</code> type is now always available, so it is encouraged to
+make liberal use of it in your errors. If you are writing an
+application that displays backtraces, make sure to enable the
+<a href="../../../snafu/guide/feature_flags/index.html"><code>backtrace</code> feature flag</a> so that
+backtraces are populated when they are created.</p>
+<p>Implementations of <code>Backtrace::default</code> and <code>Backtrace::new</code> have been
+removed and replaced with <code>GenerateBacktrace::generate</code>.</p>
+<p>The <code>backtrace-crate</code> feature flag has been renamed to
+<code>backtraces-impl-backtrace-crate</code>. The backtrace returned by
+<code>ErrorCompat::backtrace</code> is now the <code>backtrace::Backtrace</code> type when
+this flag is enabled, so the implementation of <code>AsRef</code> has been
+removed..</p>
+<h3 id="futures" class="section-header"><a href="#futures">Futures</a></h3>
+<p>Support for the standard library features has been stabilized, so the
+feature flag has been renamed from <code>unstable-futures</code> to <code>futures</code>.</p>
+<h2 id="version-04--05" class="section-header"><a href="#version-04--05">Version 0.4 → 0.5</a></h2><h3 id="backtracedelegate-replaced-with-backtrace" class="section-header"><a href="#backtracedelegate-replaced-with-backtrace"><code>backtrace(delegate)</code> replaced with <code>backtrace</code></a></h3>
+<p>Previously, if you wanted to delegate backtrace creation to
+another error, you would specify <code>#[snafu(backtrace(delegate))]</code>
+on the source field that references the other error.</p>
+<p>Now, you specify the simpler <code>#[snafu(backtrace)]</code>.  Since source
+fields must be error types, and backtrace fields must be
+<code>Backtrace</code> types, this is unambiguous and simplifies the API.</p>
+<h4 id="before" class="section-header"><a href="#before">Before</a></h4>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="ident">MyVariant</span> {
+        <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">backtrace</span>(<span class="ident">delegate</span>))]</span>
+        <span class="ident">source</span>: <span class="ident">OtherError</span>,
+    },
+}</pre></div>
+<h4 id="after" class="section-header"><a href="#after">After</a></h4>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="ident">MyVariant</span> {
+        <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">backtrace</span>)]</span>
+        <span class="ident">source</span>: <span class="ident">OtherError</span>,
+    },
+}</pre></div>
+<h3 id="sourcefrom-implies-source" class="section-header"><a href="#sourcefrom-implies-source"><code>source(from)</code> implies <code>source</code></a></h3>
+<p>Previously, if you had wanted to treat a field that wasn't named
+&quot;source&quot; as a source field, <em>and</em> you wanted to transform the
+field from another type, you had to specify both
+<code>#[snafu(source)]</code> and <code>#[snafu(source(from(...)))]</code>.</p>
+<p>Now, <code>#[snafu(source(from(...)))]</code> implies <code>#[snafu(source)]</code> --
+it automatically treats the field as a source field regardless of
+its name, so you can remove the <code>#[snafu(source)]</code> attribute.</p>
+<h4 id="before-1" class="section-header"><a href="#before-1">Before</a></h4>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="ident">CauseIsAnError</span> {
+        <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">source</span>)]</span>
+        <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">source</span>(<span class="ident">from</span>(<span class="ident">Error</span>, <span class="ident">Box</span>::<span class="ident">new</span>)))]</span>
+        <span class="ident">cause</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>,
+    },
+}</pre></div>
+<h4 id="after-1" class="section-header"><a href="#after-1">After</a></h4>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="ident">CauseIsAnError</span> {
+        <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">source</span>(<span class="ident">from</span>(<span class="ident">Error</span>, <span class="ident">Box</span>::<span class="ident">new</span>)))]</span>
+        <span class="ident">cause</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>,
+    },
+}</pre></div>
+<h3 id="new-errors-for-attribute-misuse-and-duplication" class="section-header"><a href="#new-errors-for-attribute-misuse-and-duplication">New errors for attribute misuse and duplication</a></h3>
+<p>Previously, SNAFU would ignore <code>#[snafu(...)]</code> attributes that
+were used in invalid locations.  If attributes were duplicated,
+either the first or last would apply (depending on the attribute)
+and the rest would be ignored.</p>
+<p>One example is specifying <code>#[snafu(source(from(...)))]</code> on an
+enum variant instead of the source field in that variant:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="comment">// This used to be ignored, and will now cause an error:</span>
+    <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">source</span>(<span class="ident">from</span>(<span class="ident">Error</span>, <span class="ident">Box</span>::<span class="ident">new</span>)))]</span>
+    <span class="ident">MyVariant</span> {
+        <span class="ident">source</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>,
+    },
+}</pre></div>
+<p>Now, compiler errors will be emitted that point to any misused or
+duplicated attributes.</p>
+<h2 id="version-03--04" class="section-header"><a href="#version-03--04">Version 0.3 → 0.4</a></h2><h3 id="context-vs-intoerror" class="section-header"><a href="#context-vs-intoerror"><code>Context</code> vs. <code>IntoError</code></a></h3>
+<p>The <code>Context</code> type and related <code>From</code> implementations have been
+removed in favor of the <a href="../../../snafu/trait.IntoError.html"><code>IntoError</code></a> trait. If
+you were making use of this for custom conversions, you will need
+to update your trait bounds:</p>
+<h4 id="before-2" class="section-header"><a href="#before-2">Before</a></h4>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="kw">fn</span> <span class="ident">example</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MyType</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">snafu</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="ident">SomeError</span>, <span class="ident">C</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;</pre></div>
+<h4 id="after-2" class="section-header"><a href="#after-2">After</a></h4>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="kw">fn</span> <span class="ident">example</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MyType</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">C</span>: <span class="ident">snafu</span>::<span class="ident">IntoError</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">Source</span> <span class="op">=</span> <span class="ident">SomeError</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">snafu</span>::<span class="ident">ErrorCompat</span>;</pre></div>
+<h3 id="borrowstderrorerror" class="section-header"><a href="#borrowstderrorerror"><code>Borrow&lt;std::error::Error&gt;</code></a></h3>
+<p>SNAFU no longer generates <code>Borrow&lt;std::error::Error&gt;</code>
+implementations for SNAFU error types (sorry for the whiplash if
+you were affected by this when upgrading to 0.3).</p>
+<h2 id="version-02--03" class="section-header"><a href="#version-02--03">Version 0.2 → 0.3</a></h2>
+<p>Minimal changes should be required: if you previously implemented
+<code>Borrow&lt;std::error::Error&gt;</code> for a SNAFU error type, you should
+remove that implementation and allow SNAFU to implement it for
+you.</p>
+<h2 id="version-01--02" class="section-header"><a href="#version-01--02">Version 0.1 → 0.2</a></h2>
+<p>Support for the <code>snafu::display</code> attribute was removed as this
+type of attribute was <a href="https://github.com/rust-lang/rust/pull/58899">never intended to be
+supported</a>. Since this required a SemVer-incompatible
+version, the attribute format has also been updated and
+normalized.</p>
+<ol>
+<li>
+<p>Attributes have been renamed</p>
+<ul>
+<li><code>snafu_display</code> and <code>snafu::display</code> became <code>snafu(display)</code>.</li>
+<li><code>snafu_visibility</code> became <code>snafu(visibility)</code></li>
+<li><code>snafu_backtrace</code> became <code>snafu(backtrace)</code></li>
+</ul>
+</li>
+<li>
+<p>Support for <code>snafu_display</code> with individually-quoted format
+arguments was removed. Migrate to either the &quot;clean&quot; or &quot;all
+one string&quot; styles, depending on what version of Rust you are
+targeting.</p>
+</li>
+</ol>
+<h3 id="before-3" class="section-header"><a href="#before-3">Before</a></h3>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">DisplayUpdate</span> {
+    <span class="attribute">#[<span class="ident">snafu</span>::<span class="ident">display</span>(<span class="string">&quot;Format and {}&quot;</span>, <span class="ident">argument</span>)]</span>
+    <span class="ident">CleanStyle</span> { <span class="ident">argument</span>: <span class="ident">i32</span> },
+
+    <span class="attribute">#[<span class="ident">snafu_display</span>(<span class="string">&quot;Format and {}&quot;</span>, <span class="string">&quot;argument&quot;</span>)]</span>
+    <span class="ident">QuotedArgumentStyle</span> { <span class="ident">argument</span>: <span class="ident">i32</span> },
+
+    <span class="attribute">#[<span class="ident">snafu_display</span> <span class="op">=</span> <span class="string">r#&quot;(&quot;Format and {}&quot;, argument)&quot;#</span>]</span>
+    <span class="ident">AllOneStringStyle</span> { <span class="ident">argument</span>: <span class="ident">i32</span> },
+}</pre></div>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">VisibilityUpdate</span> {
+    <span class="attribute">#[<span class="ident">snafu_visibility</span>(<span class="kw">pub</span>(<span class="kw">crate</span>))]</span>
+    <span class="ident">CleanStyle</span>,
+
+    <span class="attribute">#[<span class="ident">snafu_visibility</span> <span class="op">=</span> <span class="string">&quot;pub(crate)&quot;</span>]</span>
+    <span class="ident">AllOneStringStyle</span>,
+}</pre></div>
+<h3 id="after-3" class="section-header"><a href="#after-3">After</a></h3>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">DisplayUpdate</span> {
+    <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">display</span>(<span class="string">&quot;Format and {}&quot;</span>, <span class="ident">argument</span>))]</span>
+    <span class="ident">CleanStyle</span> { <span class="ident">argument</span>: <span class="ident">i32</span> },
+
+    <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">r#&quot;(&quot;Format and {}&quot;, argument)&quot;#</span>)]</span>
+    <span class="ident">QuotedArgumentStyle</span> { <span class="ident">argument</span>: <span class="ident">i32</span> },
+
+    <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">r#&quot;(&quot;Format and {}&quot;, argument)&quot;#</span>)]</span>
+    <span class="ident">AllOneStringStyle</span> { <span class="ident">argument</span>: <span class="ident">i32</span> },
+}</pre></div>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Snafu</span>)]</span>
+<span class="kw">enum</span> <span class="ident">VisibilityUpdate</span> {
+    <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">visibility</span>(<span class="kw">pub</span>(<span class="kw">crate</span>)))]</span>
+    <span class="ident">CleanStyle</span>,
+
+    <span class="attribute">#[<span class="ident">snafu</span>(<span class="ident">visibility</span> <span class="op">=</span> <span class="string">&quot;pub(crate)&quot;</span>)]</span>
+    <span class="ident">AllOneStringStyle</span>,
+}</pre></div>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "snafu";</script><script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>

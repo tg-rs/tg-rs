@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["LongPoll","Receive incoming updates using long polling"],["LongPollHandle","Long poll handle"],["LongPollOptions","Options for long polling"]]});

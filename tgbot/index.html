@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `tgbot` crate."><meta name="keywords" content="rust, rustlang, rust-lang, tgbot"><title>tgbot - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../tgbot/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate tgbot</p><div class="block version"><p>Version 0.12.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all tgbot's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "tgbot", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/tgbot/lib.rs.html#1-29" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">tgbot</a></span></h1><div class="docblock"><p>A Telegram Bot API client library</p>
+<h1 id="tgbot" class="section-header"><a href="#tgbot">TGBOT</a></h1>
+<p>A full-featured Telegram Bot API client</p>
+<p><a href="https://github.com/tg-rs/tgbot/actions/"><img src="https://img.shields.io/github/workflow/status/tg-rs/tgbot/CI?style=flat-square" alt="CI" /></a>
+<a href="https://codecov.io/gh/tg-rs/tgbot"><img src="https://img.shields.io/codecov/c/github/tg-rs/tgbot.svg?style=flat-square" alt="Coverage" /></a>
+<a href="https://crates.io/crates/tgbot"><img src="https://img.shields.io/crates/v/tgbot.svg?style=flat-square" alt="Version" /></a>
+<a href="https://crates.io/crates/tgbot"><img src="https://img.shields.io/crates/d/tgbot.svg?style=flat-square" alt="Downloads" /></a>
+<a href="https://docs.rs/tgbot"><img src="https://img.shields.io/badge/docs-release-brightgreen.svg?style=flat-square" alt="Release Documentation" /></a>
+<a href="https://tg-rs.github.io/tgbot/tgbot/"><img src="https://img.shields.io/badge/docs-master-blueviolet.svg?style=flat-square" alt="Master Documentation" /></a>
+<a href="https://t.me/tgrsusers"><img src="https://img.shields.io/badge/-@tgrsusers-blue?style=flat-square&amp;logo=telegram" alt="Telegram Chat" /></a>
+<a href="https://github.com/tg-rs/tgbot/tree/0.12.0/LICENSE"><img src="https://img.shields.io/crates/l/tgbot.svg?style=flat-square" alt="License" /></a></p>
+<h2 id="installation" class="section-header"><a href="#installation">Installation</a></h2>
+<pre><code class="language-toml">[dependencies]
+tgbot = &quot;0.12.0&quot;
+</code></pre>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
+<p>Long polling:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
+<span class="kw">use</span> <span class="ident">tgbot</span>::{<span class="ident">Api</span>, <span class="ident">Config</span>, <span class="ident">UpdateHandler</span>, <span class="ident">async_trait</span>};
+<span class="kw">use</span> <span class="ident">tgbot</span>::<span class="ident">longpoll</span>::<span class="ident">LongPoll</span>;
+<span class="kw">use</span> <span class="ident">tgbot</span>::<span class="ident">methods</span>::<span class="ident">SendMessage</span>;
+<span class="kw">use</span> <span class="ident">tgbot</span>::<span class="ident">types</span>::{<span class="ident">Update</span>, <span class="ident">UpdateKind</span>};
+
+<span class="kw">struct</span> <span class="ident">Handler</span> {
+    <span class="ident">api</span>: <span class="ident">Api</span>,
+}
+
+<span class="attribute">#[<span class="ident">async_trait</span>]</span>
+<span class="kw">impl</span> <span class="ident">UpdateHandler</span> <span class="kw">for</span> <span class="ident">Handler</span> {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="ident">Update</span>) {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;got an update: {:?}\n&quot;</span>, <span class="ident">update</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">UpdateKind</span>::<span class="ident">Message</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">update</span>.<span class="ident">kind</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">text</span>) <span class="op">=</span> <span class="ident">message</span>.<span class="ident">get_text</span>() {
+                <span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">api</span>.<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">chat_id</span> <span class="op">=</span> <span class="ident">message</span>.<span class="ident">get_chat_id</span>();
+                <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="ident">SendMessage</span>::<span class="ident">new</span>(<span class="ident">chat_id</span>, <span class="ident">text</span>.<span class="ident">data</span>.<span class="ident">clone</span>());
+                <span class="ident">api</span>.<span class="ident">execute</span>(<span class="ident">method</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+            }
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">tokio</span>::<span class="ident">main</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TGBOT_TOKEN&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;TGBOT_TOKEN is not set&quot;</span>);
+    <span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="ident">Api</span>::<span class="ident">new</span>(<span class="ident">Config</span>::<span class="ident">new</span>(<span class="ident">token</span>)).<span class="ident">expect</span>(<span class="string">&quot;Failed to create API&quot;</span>);
+    <span class="ident">LongPoll</span>::<span class="ident">new</span>(<span class="ident">api</span>.<span class="ident">clone</span>(), <span class="ident">Handler</span> { <span class="ident">api</span> }).<span class="ident">run</span>().<span class="kw">await</span>;
+}</pre></div>
+<p>Webhook:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">tgbot</span>::{<span class="ident">types</span>::<span class="ident">Update</span>, <span class="ident">async_trait</span>, <span class="ident">webhook</span>, <span class="ident">UpdateHandler</span>};
+
+<span class="kw">struct</span> <span class="ident">Handler</span>;
+
+<span class="attribute">#[<span class="ident">async_trait</span>]</span>
+<span class="kw">impl</span> <span class="ident">UpdateHandler</span> <span class="kw">for</span> <span class="ident">Handler</span> {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="ident">Update</span>) {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;got an update: {:?}\n&quot;</span>, <span class="ident">update</span>);
+    }
+}
+
+<span class="attribute">#[<span class="ident">tokio</span>::<span class="ident">main</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="ident">webhook</span>::<span class="ident">run_server</span>(([<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>], <span class="number">8080</span>), <span class="string">&quot;/&quot;</span>, <span class="ident">Handler</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+}</pre></div>
+<p>See more examples in <a href="https://github.com/tg-rs/tgbot/tree/0.12.0/examples">examples</a> directory.</p>
+<p>In order to run an example you need to create a <code>.env</code> file:</p>
+<pre><code class="language-sh">cp sample.env .env
+</code></pre>
+<p>Don't forget to change value of <code>TGBOT_TOKEN</code> and other variables if required.</p>
+<h2 id="changelog" class="section-header"><a href="#changelog">Changelog</a></h2>
+<p>See <a href="https://github.com/tg-rs/tgbot/tree/0.12.0/CHANGELOG.md">CHANGELOG.md</a></p>
+<h2 id="code-of-conduct" class="section-header"><a href="#code-of-conduct">Code of Conduct</a></h2>
+<p>See <a href="https://github.com/tg-rs/tgbot/tree/0.12.0/CODE_OF_CONDUCT.md">CODE_OF_CONDUCT.md</a>.</p>
+<h2 id="license" class="section-header"><a href="#license">LICENSE</a></h2>
+<p>The MIT License (MIT)</p>
+</div><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
+<table><tr><td><code>pub use <a class="mod" href="../mime/index.html" title="mod mime">mime</a>;</code></td></tr></table><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<table><tr class="module-item"><td><a class="mod" href="longpoll/index.html" title="tgbot::longpoll mod">longpoll</a></td><td class="docblock-short"><p>Utilities to receive updates using long poll</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="methods/index.html" title="tgbot::methods mod">methods</a></td><td class="docblock-short"><p>Methods available in the Bot API</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="types/index.html" title="tgbot::types mod">types</a></td><td class="docblock-short"><p>Types available in the Bot API</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="webhook/index.html" title="tgbot::webhook mod">webhook</a></td><td class="docblock-short"><p>Services to receive updates via webhook</p>
+</td></tr></table><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<table><tr class="module-item"><td><a class="struct" href="struct.Api.html" title="tgbot::Api struct">Api</a></td><td class="docblock-short"><p>Telegram Bot API client</p>
+</td></tr><tr class="module-item"><td><a class="struct" href="struct.Config.html" title="tgbot::Config struct">Config</a></td><td class="docblock-short"><p>An API config</p>
+</td></tr></table><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<table><tr class="module-item"><td><a class="enum" href="enum.ApiError.html" title="tgbot::ApiError enum">ApiError</a></td><td class="docblock-short"><p>A general API error</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.DownloadFileError.html" title="tgbot::DownloadFileError enum">DownloadFileError</a></td><td class="docblock-short"><p>An error when downloading file</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.ExecuteError.html" title="tgbot::ExecuteError enum">ExecuteError</a></td><td class="docblock-short"><p>An error when executing method</p>
+</td></tr><tr class="module-item"><td><a class="enum" href="enum.ParseProxyError.html" title="tgbot::ParseProxyError enum">ParseProxyError</a></td><td class="docblock-short"><p>An error when parsing proxy</p>
+</td></tr></table><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<table><tr class="module-item"><td><a class="trait" href="trait.UpdateHandler.html" title="tgbot::UpdateHandler trait">UpdateHandler</a></td><td class="docblock-short"><p>An update handler</p>
+</td></tr></table><h2 id="attributes" class="section-header"><a href="#attributes">Attribute Macros</a></h2>
+<table><tr class="module-item"><td><a class="attr" href="attr.async_trait.html" title="tgbot::async_trait attr">async_trait</a></td><td class="docblock-short"></td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "tgbot";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

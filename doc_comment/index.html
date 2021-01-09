@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `doc_comment` crate."><meta name="keywords" content="rust, rustlang, rust-lang, doc_comment"><title>doc_comment - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../doc_comment/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate doc_comment</p><div class="block version"><p>Version 0.3.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all doc_comment's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "doc_comment", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/doc_comment/lib.rs.html#7-228" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">doc_comment</a></span></h1><div class="docblock"><p>The point of this (small) crate is to allow you to add doc comments from macros or
+to test external markdown files' code blocks through <code>rustdoc</code>.</p>
+<h2 id="including-files-for-testing" class="section-header"><a href="#including-files-for-testing">Including file(s) for testing</a></h2>
+<p>Let's assume you want to test code examples in your <code>README.md</code> file which
+looks like this:</p>
+<pre><code class="language-text"># A crate
+
+Here is a code example:
+
+```rust
+let x = 2;
+assert!(x != 0);
+```
+</code></pre>
+<p>You can use the <code>doc_comment!</code> macro to test it like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">doc_comment</span>;
+
+<span class="comment">// When running `cargo test`, rustdoc will check this file as well.</span>
+<span class="macro">doc_comment</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;../README.md&quot;</span>));</pre></div>
+<p>Please note that can also use the <code>doctest!</code> macro to have a shorter way to test an outer
+file:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">doc_comment</span>;
+
+<span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../README.md&quot;</span>);</pre></div>
+<p>Please also note that you can use <code>#[cfg(doctest)]</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">doctest</span>)]</span>
+<span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../README.md&quot;</span>);</pre></div>
+<p>In this case, the examples in the <code>README.md</code> file will only be run on <code>cargo test</code>. You
+can find more information about <code>#[cfg(doctest)]</code> in <a href="https://blog.guillaume-gomez.fr/articles/2020-03-07+cfg%28doctest%29+is+stable+and+you+should+use+it">this blogpost</a>.</p>
+<h2 id="generic-documentation" class="section-header"><a href="#generic-documentation">Generic documentation</a></h2>
+<p>Now let's imagine you want to write documentation once for multiple types but
+still having examples specific to each type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// The macro which generates types</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">gen_types</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tyname</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="doccomment">/// This is a wonderful generated struct!</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// You can use it as follow:</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// let x = FirstOne {</span>
+        <span class="doccomment">///     field1: 0,</span>
+        <span class="doccomment">///     field2: 0,</span>
+        <span class="doccomment">///     field3: 0,</span>
+        <span class="doccomment">///     field4: 0,</span>
+        <span class="doccomment">/// };</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// println!(&quot;Created a new instance of FirstOne: {:?}&quot;, x);</span>
+        <span class="doccomment">/// ```</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+        <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tyname</span> {
+            <span class="kw">pub</span> <span class="ident">field1</span>: <span class="ident">u8</span>,
+            <span class="kw">pub</span> <span class="ident">field2</span>: <span class="ident">u16</span>,
+            <span class="kw">pub</span> <span class="ident">field3</span>: <span class="ident">u32</span>,
+            <span class="kw">pub</span> <span class="ident">field4</span>: <span class="ident">u64</span>,
+        }
+    }
+}
+
+<span class="comment">// Now let&#39;s actually generate types:</span>
+<span class="macro">gen_types</span><span class="macro">!</span>(<span class="ident">FirstOne</span>);
+<span class="macro">gen_types</span><span class="macro">!</span>(<span class="ident">SecondOne</span>);
+<span class="macro">gen_types</span><span class="macro">!</span>(<span class="ident">Another</span>);</pre></div>
+<p>So now we have created three structs with different names, but they all have the exact same
+documentation, which is an issue for any structs not called <code>FirstOne</code>. That's where
+<a href="../doc_comment/macro.doc_comment.html" title="doc_comment!"><code>doc_comment!</code></a> macro comes in handy!</p>
+<p>Let's rewrite the <code>gen_types!</code> macro:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// Of course, we need to import the `doc_comment` macro:</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">doc_comment</span>;
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">gen_types</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tyname</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro">doc_comment</span><span class="macro">!</span> {
+<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;This is a wonderful generated struct!
+
+You can use it as follow:
+
+```
+let x = &quot;</span>, <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tyname</span>), <span class="string">&quot; {
+    field1: 0,
+    field2: 0,
+    field3: 0,
+    field4: 0,
+};
+
+println!(\&quot;Created a new instance of &quot;</span>, <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tyname</span>), <span class="string">&quot;: {:?}\&quot;, x);
+```&quot;</span>),
+            <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+            <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tyname</span> {
+                <span class="kw">pub</span> <span class="ident">field1</span>: <span class="ident">u8</span>,
+                <span class="kw">pub</span> <span class="ident">field2</span>: <span class="ident">u16</span>,
+                <span class="kw">pub</span> <span class="ident">field3</span>: <span class="ident">u32</span>,
+                <span class="kw">pub</span> <span class="ident">field4</span>: <span class="ident">u64</span>,
+            }
+        }
+    }
+}
+
+<span class="macro">gen_types</span><span class="macro">!</span>(<span class="ident">FirstOne</span>);
+<span class="macro">gen_types</span><span class="macro">!</span>(<span class="ident">SecondOne</span>);
+<span class="macro">gen_types</span><span class="macro">!</span>(<span class="ident">Another</span>);</pre></div>
+<p>Now each struct has doc which match itself!</p>
+</div><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
+<table><tr class="module-item"><td><a class="macro" href="macro.doc_comment.html" title="doc_comment::doc_comment macro">doc_comment</a></td><td class="docblock-short"><p>This macro can be used to generate documentation upon a type/item (or just to test outer
+markdown file code examples).</p>
+</td></tr><tr class="module-item"><td><a class="macro" href="macro.doctest.html" title="doc_comment::doctest macro">doctest</a></td><td class="docblock-short"><p>This macro provides a simpler way to test an outer markdown file.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "doc_comment";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

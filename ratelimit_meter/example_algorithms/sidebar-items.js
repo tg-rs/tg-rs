@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Impossible","A non-error - the Allower example rate-limiter always returns a positive result, so this error is never returned."]],"struct":[["Allower","The most naive implementation of a rate-limiter ever: Always allows every cell through."],["Always","A pseudo-instant that never changes."],["ForeverClock",""]]});
