@@ -1,11 +1,12 @@
+pub use self::{
+    dispatcher::{Dispatcher, ErrorHandler, LoggingErrorHandler},
+    from_update::{Data, DataError, Either, FromUpdate, ServiceUpdate},
+    handler::{BoxedHandler, ContinueHandler, Guard, GuardResult, Handler, StopHandler},
+    result::{HandlerResult, HandlerResultError},
+};
+
 mod convert;
-mod dispatcher;
+pub(crate) mod dispatcher;
+mod from_update;
 mod handler;
 mod result;
-
-pub use self::{
-    convert::TryFromUpdate,
-    dispatcher::{Dispatcher, ErrorHandler, ErrorPolicy, LoggingErrorHandler},
-    handler::Handler,
-    result::{HandlerError, HandlerResult},
-};

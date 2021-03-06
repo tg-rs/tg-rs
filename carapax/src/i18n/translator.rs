@@ -1,5 +1,10 @@
+use crate::{
+    i18n::{Locale, LocaleNotFound, TranslatorStore},
+    Data, DataError, FromUpdate, ServiceUpdate,
+};
+use futures_util::future::BoxFuture;
 use gettext::Catalog;
-use std::sync::Arc;
+use std::{convert::TryFrom, error::Error, fmt, sync::Arc};
 
 /// An i18n translator uses `gettext` crate
 #[derive(Debug, Clone)]
@@ -38,6 +43,52 @@ impl Translator {
     /// Returns a locale
     pub fn get_locale(&self) -> &str {
         &self.locale
+    }
+}
+
+impl FromUpdate for Translator {
+    type Error = TranslatorError;
+    type Future = BoxFuture<'static, Result<Option<Self>, Self::Error>>;
+
+    fn from_update(service_update: ServiceUpdate) -> Self::Future {
+        Box::pin(async move {
+            let locale = Locale::try_from(&service_update.update)?;
+            let store = Data::<TranslatorStore>::from_update(service_update)
+                .await
+                .map_err(|_: DataError| TranslatorError::NoStoreInData)?
+                .expect("Data always returns Some");
+            Ok(Some(store.get_translator(locale)))
+        })
+    }
+}
+
+#[derive(Debug)]
+pub enum TranslatorError {
+    LocaleNotFound(LocaleNotFound),
+    NoStoreInData,
+}
+
+impl From<LocaleNotFound> for TranslatorError {
+    fn from(err: LocaleNotFound) -> Self {
+        Self::LocaleNotFound(err)
+    }
+}
+
+impl fmt::Display for TranslatorError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            TranslatorError::LocaleNotFound(err) => fmt::Display::fmt(err, f),
+            TranslatorError::NoStoreInData => f.write_str("TranslatorStore was not added using Dispatcher::data()"),
+        }
+    }
+}
+
+impl Error for TranslatorError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            TranslatorError::LocaleNotFound(err) => Some(err),
+            TranslatorError::NoStoreInData => None,
+        }
     }
 }
 
